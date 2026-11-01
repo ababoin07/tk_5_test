@@ -52,6 +52,12 @@ class Builder:
         if mutation is not None:self.B[k]['mutation']=mutation
         return k
     def cmd(self,op,inputs=None,fields=None):return self.block(op,{k:self.input(v) for k,v in (inputs or {}).items()},fields)
+    def broadcast(self,name,wait=False):
+        # Broadcast menus are literal shadow inputs, never executable reporter blocks.
+        broadcasts=self.project['targets'][0]['broadcasts']
+        id=next(k for k,v in broadcasts.items() if v==name)
+        return self.block('event_broadcastandwait' if wait else 'event_broadcast',
+                          {'BROADCAST_INPUT':[1,[11,name,id]]})
     def set(self,n,x):return self.cmd('data_setvariableto',{'VALUE':x},{'VARIABLE':[n,self.variable(n)]})
     def inc(self,n,x=1):return self.cmd('data_changevariableby',{'VALUE':x},{'VARIABLE':[n,self.variable(n)]})
     def item(self,n,i):return Expr('data_itemoflist',{'INDEX':i},{'LIST':[n,None]})

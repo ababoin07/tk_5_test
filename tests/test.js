@@ -5,7 +5,7 @@ const {Engine,START,MAKE,ATTACK}=require('./runtime');
 const FENS=[START,'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1','8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1','4k3/P7/8/8/8/8/7p/4K3 w - - 0 1','4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1','r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1','rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8'];
 function oraclePerft(chess,d){if(!d)return 1;let n=0;for(const m of chess.moves({verbose:true})){chess.move(m);n+=oraclePerft(chess,d-1);chess.undo();}return n;}
 (async()=>{
- const e=await Engine.load(process.argv[2]||'TurboKnight-5-v54.sb3');let tests=0;
+ const e=await Engine.load(process.argv[2]||'TurboKnight-5-v55.sb3');let tests=0;
  for(const fen of FENS){
   e.fen(fen);const before=e.snapshot();const actual=[];
   for(const m of e.moves()){
@@ -20,7 +20,19 @@ function oraclePerft(chess,d){if(!d)return 1;let n=0;for(const m of chess.moves(
   }
   assert.deepEqual(actual.sort(),new Chess(fen).moves({verbose:true}).map(m=>m.from+m.to+(m.promotion||'')).sort(),fen);tests++;
  }
- console.log('PASS legal moves + incremental state, including all underpromotions:',tests,'positions');
+ for(const fen of [
+  '4r1k1/8/8/8/8/8/8/4K2R w K - 0 1', // castle out of check
+  '5rk1/8/8/8/8/8/8/4K2R w K - 0 1', // castle through check
+  '6r1/7k/8/8/8/8/8/4K2R w K - 0 1', // castle into check
+  'k3r3/8/8/3pP3/8/8/8/4K3 w - d6 0 1', // pinned en passant
+  '4r1k1/8/8/8/8/8/4R3/4K3 w - - 0 1' // pinned rook
+ ]){
+  e.fen(fen);const before=e.snapshot();const legal=e.moves().filter(m=>e.isLegal(m)).map(Engine.notation).sort();
+  assert.deepEqual(legal,new Chess(fen).moves({verbose:true}).map(m=>m.from+m.to+(m.promotion||'')).sort(),fen);
+  assert.equal(e.snapshot(),before);tests++;
+ }
+ e.fen('4r1k1/8/8/8/8/8/8/4K3 b - - 0 1');const probeBefore=e.snapshot();e.call('search.king_probe');assert.equal(Number(e.get('moves_generator.king_capture')),1);assert.equal(e.snapshot(),probeBefore);tests++;
+ console.log('PASS legal moves, castling, pins, king disappearance + incremental state:',tests,'positions');
  for(const [fen,d,expected]of [[START,3,8902],[FENS[1],2,2039],[FENS[2],3,2812],[FENS[5],2,264],[FENS[6],2,1486],[FENS[3],2,null]]){
   e.fen(fen);const before=e.snapshot();e.call('__PERFT %s %s',[d,1]);assert.equal(e.value(),expected??oraclePerft(new Chess(fen),d));assert.equal(e.snapshot(),before);assert.equal(e.get('search.context.sp'),0);tests++;console.log('PASS perft',d,e.value());
  }

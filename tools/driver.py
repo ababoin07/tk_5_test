@@ -16,7 +16,7 @@ b.define('search.emit',[],[
         b.call(NOTATION,*[V('search.root.'+n) for n in ['from','to','flag0','flag1']]),
         setv('root.move',V('tools.get_uci_notation.res'))]),
     b.append('_dci',join('m',s('root.move'))),
-    b.cmd('event_broadcastandwait',{'BROADCAST_INPUT':Expr('event_broadcast_menu',fields={'BROADCAST_OPTION':['dci message',None]})})])
+    b.broadcast('dci message',wait=True)])
 
 # A progressively widening aspiration window; retry both fail-high and fail-low.
 lo=lambda:sub(s('root.score'),s('asp.window'));hi=lambda:add(s('root.score'),s('asp.window'))
@@ -43,7 +43,7 @@ b.define('search.report',[],[setv('evaluation',cp),b.set('_dci evaluation',div(s
     b.set('_dci pv',join(join(s('completed_depth'),' '),s('build_pv.res'))),
     setv('report.elapsed',mul(sub(now(),s('start')),86400)),b.IF(lt(s('report.elapsed'),0.001),[setv('report.elapsed',0.001)]),
     b.append('_CONSOLE',join(join(join(join('info depth ',s('completed_depth')),join(' seldepth ',s('sel_depth'))),join(' score ',s('report.score'))),join(join(join(' nodes ',s('nodes')),join(' nps ',math('floor',div(s('nodes'),s('report.elapsed'))))),join(' pv ',s('build_pv.res'))))),b.append('_dci',li('_CONSOLE',Expr('data_lengthoflist',fields={'LIST':['_CONSOLE',None]}))),
-    b.cmd('event_broadcast',{'BROADCAST_INPUT':Expr('event_broadcast_menu',fields={'BROADCAST_OPTION':['gui refresh stats',None]})})])
+    b.broadcast('gui refresh stats')])
 b.define(ITER,['max_time','max_depth'],[
     setv('context.sp',0),setv('nodes',0),setv('qnodes',0),setv('stopped',0),setv('start',now()),setv('max_time',A('max_time')),setv('max_nodes',V('_dci max nodes')),b.IF(AND(NOT(gt(s('max_time'),0)),AND(NOT(gt(A('max_depth'),0)),NOT(gt(s('max_nodes'),0)))),[setv('max_time',1)]),setv('completed_depth',0),setv('root.score',0),setv('sel_depth',0),setv('book.move',''),
     b.IF(AND(eq(s('use_book'),1),Expr('data_listcontainsitem',{'ITEM':add(V('position.positionnal_hash'),V('position.datas_hash'))},{'LIST':['_OPENING_BOOK',None]})),[

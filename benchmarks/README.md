@@ -1,3 +1,5 @@
+> These are historical v54 measurements, not v55 measurements. v55 repairs GUI delivery and changes legality to king-disappearance probes; its functional validation includes a real compiled TurboWarp browser run.
+
 # Recorded comparisons
 
 The JSON files are actual runs in Scratch VM 5.0.300 on Node 24/Linux. Every position starts with a cold TT and cleared history; the opening book is disabled. Variants run sequentially to avoid competing for CPU.
