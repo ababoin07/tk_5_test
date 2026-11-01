@@ -1,0 +1,114 @@
+{
+  "runtime": "compiled TurboWarp, real GUI and broadcasts active",
+  "tt_buckets": 50000,
+  "thinking_time": 0.5,
+  "repetitions": 3,
+  "notes": "Opening book cleared. Same TT capacity as kernel benchmark. First run warms compilation; three following games measured. Wall time includes controller/GUI delivery after the player move. Raw nodes reflect each version’s search. The original counts the same depth-zero position in NEG and Q; the corrected position-entry measure subtracts these delegations (at a timeout boundary its error can be one entry). No release node counter is changed.",
+  "variants": [
+    {
+      "file": "baseline/TurboKnight-5-v52.sb3",
+      "sha256": "35deac056f057c3aa93cea79958aae3a00638cc0d752469782688bb4f4027283",
+      "samples": [
+        {
+          "ms": 756,
+          "nodes": 98304,
+          "delegations": 37021,
+          "positions": 61283,
+          "position_nps": 81062.16931216931,
+          "nps": 130031.74603174604,
+          "depth": 7
+        },
+        {
+          "ms": 762,
+          "nodes": 114688,
+          "delegations": 43186,
+          "positions": 71502,
+          "position_nps": 93834.64566929133,
+          "nps": 150509.18635170604,
+          "depth": 7
+        },
+        {
+          "ms": 759,
+          "nodes": 114688,
+          "delegations": 43186,
+          "positions": 71502,
+          "position_nps": 94205.53359683795,
+          "nps": 151104.08432147562,
+          "depth": 7
+        }
+      ],
+      "median_position_nps": 93834.64566929133,
+      "median_nps": 150509.18635170604
+    },
+    {
+      "file": "TurboKnight-5-v55.sb3",
+      "sha256": "1ad4b04e5bda97d58ec0937dbd7cdfe876e14b3e7a80c06f7bb270b498079eb6",
+      "samples": [
+        {
+          "ms": 716,
+          "nodes": 17728,
+          "delegations": 0,
+          "positions": 17728,
+          "position_nps": 24759.77653631285,
+          "nps": 24759.77653631285,
+          "depth": 4
+        },
+        {
+          "ms": 721,
+          "nodes": 20096,
+          "delegations": 0,
+          "positions": 20096,
+          "position_nps": 27872.39944521498,
+          "nps": 27872.39944521498,
+          "depth": 4
+        },
+        {
+          "ms": 742,
+          "nodes": 20352,
+          "delegations": 0,
+          "positions": 20352,
+          "position_nps": 27428.571428571428,
+          "nps": 27428.571428571428,
+          "depth": 4
+        }
+      ],
+      "median_position_nps": 27428.571428571428,
+      "median_nps": 27428.571428571428
+    },
+    {
+      "file": "TurboKnight-5-v56.sb3",
+      "sha256": "552564ba5fb01c68bf2e3837c1fc148a8b5bfa4d66afd7f4043aee0e9ac560f5",
+      "samples": [
+        {
+          "ms": 680,
+          "nodes": 55680,
+          "delegations": 0,
+          "positions": 55680,
+          "position_nps": 81882.35294117648,
+          "nps": 81882.35294117648,
+          "depth": 9
+        },
+        {
+          "ms": 714,
+          "nodes": 60480,
+          "delegations": 0,
+          "positions": 60480,
+          "position_nps": 84705.88235294117,
+          "nps": 84705.88235294117,
+          "depth": 9
+        },
+        {
+          "ms": 718,
+          "nodes": 58432,
+          "delegations": 0,
+          "positions": 58432,
+          "position_nps": 81381.6155988858,
+          "nps": 81381.6155988858,
+          "depth": 9
+        }
+      ],
+      "median_position_nps": 81882.35294117648,
+      "median_nps": 81882.35294117648
+    }
+  ]
+}

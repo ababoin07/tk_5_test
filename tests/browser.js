@@ -4,6 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium}=require('playwright');const {Chess}=require('chess.js');
 const ROOT=path.resolve(__dirname,'..');
+const profileSource=require('./profile-project').toString();
 const runtime=require.resolve('@turbowarp/packager/dist/scaffolding/scaffolding-min.js');
 const server=http.createServer((req,res)=>{
  const url=new URL(req.url,'http://localhost');
@@ -18,10 +19,10 @@ const server=http.createServer((req,res)=>{
  fs.createReadStream(file).on('error',()=>{res.statusCode=404;res.end();}).pipe(res);
 });
 let browser;
-async function load(file){
+async function load(file,options={}){
  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:'+server.address().port+'/');
- await page.evaluate(async(file)=>{
+ await page.evaluate(async({file,ttBuckets,profileSource})=>{
   window.player=new Scaffolding.Scaffolding();player.setup();player.appendTo(document.getElementById('project'));
   window.vm=player.vm;window.compileErrors=[];window.compiledTargets=[];
   vm.runtime.on('COMPILE_ERROR',(...args)=>compileErrors.push(args.map(a=>a?.message||String(a))));
@@ -32,11 +33,11 @@ async function load(file){
    const get=(target,name)=>Object.values(target.variables).find(v=>v.name===name)?.value;
    return {turn:Number(get(stage,'_dci turn')),player:Number(get(stage,'_dci player')),time:get(stage,'_dci think time'),
     messages:[...get(stage,'_dci')],board:[...get(stage,'_dci board')].map(Number),engineBoard:[...get(engine,'position.board')].map(Number),
-    engineTurn:Number(get(engine,'position.turn')),sp:Number(get(engine,'search.context.sp')),nodes:Number(get(engine,'search.nodes')),
-    depth:Number(get(engine,'search.completed_depth')),compileErrors,compiledTargets};
+    engineTurn:Number(get(engine,'position.turn')),sp:Number(get(engine,'search.context.sp')),nodes:Number(get(engine,'search.nodes')),delegations:Number(get(engine,'bench.duplicates')||0),
+    depth:Number(get(engine,'search.completed_depth')??get(engine,'iterative_deepening.depth')),compileErrors,compiledTargets};
   };
-  await player.loadProject(await(await fetch('/'+file)).arrayBuffer());player.start();
- },file);
+  let data=await(await fetch('/'+file)).arrayBuffer();if(ttBuckets){const zip=await Scaffolding.JSZip.loadAsync(data);const project=JSON.parse(await zip.file('project.json').async('string'));(0,eval)('('+profileSource+')')(project,ttBuckets);zip.file('project.json',JSON.stringify(project));data=await zip.generateAsync({type:'uint8array'});}await player.loadProject(data);player.start();
+ },{file,ttBuckets:options.ttBuckets,profileSource});
  return {page,errors};
 }
 async function answer(page,time){
@@ -62,7 +63,7 @@ async function waitReply(page,plies){
  await page.waitForFunction(plies=>state().turn===1&&state().messages.filter(m=>/^m[a-h][1-8][a-h][1-8][nbrq]?$/.test(m)).length>=plies,plies,{timeout:30000});
  const s=await page.evaluate(()=>state());checkBoards(s);return s;
 }
-(async()=>{
+async function main(){
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const executablePath=process.env.CHROMIUM_PATH||(fs.existsSync('/usr/bin/chromium')?'/usr/bin/chromium':undefined);
  browser=await chromium.launch({executablePath,headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
@@ -73,7 +74,7 @@ async function waitReply(page,plies){
   await page.waitForTimeout(250);const s=await page.evaluate(()=>state());assert.equal(s.turn,-1,'v54 negative control must reproduce the stalled GUI');
   console.log('PASS negative control: v54 computes a reply but remains on Black’s turn');await page.close();
  }
- const {page,errors}=await load('TurboKnight-5-v55.sb3');await answer(page,0.05);
+ const {page,errors}=await load('TurboKnight-5-v56.sb3');await answer(page,0.05);
  await clickMove(page,'e2','e4');let s=await waitReply(page,2);assert.ok(s.compiledTargets.includes('turboknight'),'engine scripts must run compiled');
  console.log('PASS compiled GUI: enter thinking time, e2e4, Black replies, White can move again');
  // Force actual search for the second move, rather than allowing opening-book-only coverage.
@@ -85,6 +86,8 @@ async function waitReply(page,plies){
  await page.evaluate(()=>{const t=vm.runtime.targets.find(t=>t.getName()==='turboknight');Object.values(t.variables).find(v=>v.name==='search.use_book').value=0;});
  await clickMove(page,'d2','d4');s=await waitReply(page,2);assert.ok(s.nodes>0);assert.deepEqual(errors,[]);
  console.log('PASS compiled GUI: restart, enter thinking time, d2d4 and legal search reply');
- await page.screenshot({path:path.join(ROOT,'build/v55-gui.png')});
+ await page.screenshot({path:path.join(ROOT,'build/v56-gui.png')});
  await browser.close();server.close();
-})().catch(async e=>{console.error(e);if(browser)await browser.close();server.close();process.exitCode=1;});
+}
+module.exports={server,load,answer,clickMove,waitReply,setBrowser:b=>{browser=b;}};
+if(require.main===module)main().catch(async e=>{console.error(e);if(browser)await browser.close();server.close();process.exitCode=1;});

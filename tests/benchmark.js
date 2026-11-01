@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs');const {performance}=require('node:perf_hooks');const {Chess}=require('chess.js');const {Engine}=require('./runtime');const positions=require('./positions');
 (async()=>{
- const file=process.argv[2]||'TurboKnight-5-v55.sb3';const mode=process.argv[3]||'depth';const out=process.argv[4];
+ const file=process.argv[2]||'TurboKnight-5-v56.sb3';const mode=process.argv[3]||'depth';const out=process.argv[4];
  const e=await Engine.load(file);const rows=[];
  for(const p of positions){
   e.fen(p.fen);e.clearTT();e.optional('search.history',Array(8192).fill(0));e.set('_dci',[]);e.set('_OPENING_BOOK',[]);

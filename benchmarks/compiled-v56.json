@@ -1,0 +1,365 @@
+{
+  "runtime": "TurboWarp packager 3.14.0, compiler enabled",
+  "tt_buckets": 50000,
+  "repetitions": 3,
+  "notes": "Original v52 TT capacity normalized from compiled default to 50,000 buckets; all variants use 200,000 slots. Book disabled. Runtime/GUI broadcasts muted only in this throughput test, not browser integration tests. GEN counting instrumented equally. Timings exclude loading, initialization, FEN import and compilation warm-up. Position entries also exclude v52’s double-counted NEG-to-Q delegation. Fixed-depth samples complete fully, so this correction is exact.",
+  "variants": [
+    {
+      "file": "baseline/TurboKnight-5-v52.sb3",
+      "sha256": "35deac056f057c3aa93cea79958aae3a00638cc0d752469782688bb4f4027283",
+      "compiled": true,
+      "errors": [],
+      "rows": [
+        {
+          "name": "start",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+          "depth": 4,
+          "samples": [
+            {
+              "ms": 7,
+              "nodes": 754,
+              "delegations": 335,
+              "positions": 419,
+              "position_nps": 59857.142857142855,
+              "nps": 107714.28571428571,
+              "generations": 145
+            },
+            {
+              "ms": 5.7000000001862645,
+              "nodes": 754,
+              "delegations": 335,
+              "positions": 419,
+              "position_nps": 73508.77192742244,
+              "nps": 132280.7017500633,
+              "generations": 145
+            },
+            {
+              "ms": 7.7000000001862645,
+              "nodes": 754,
+              "delegations": 335,
+              "positions": 419,
+              "position_nps": 54415.584414268094,
+              "nps": 97922.07791970916,
+              "generations": 145
+            }
+          ],
+          "median_ms": 7,
+          "nodes": 754,
+          "gen_per_node": 0.19230769230769232
+        },
+        {
+          "name": "kiwipete",
+          "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+          "depth": 3,
+          "samples": [
+            {
+              "ms": 78.90000000037253,
+              "nodes": 13798,
+              "delegations": 991,
+              "positions": 12807,
+              "position_nps": 162319.39163421458,
+              "nps": 174879.59442249496,
+              "generations": 4175
+            },
+            {
+              "ms": 49.09999999962747,
+              "nodes": 13798,
+              "delegations": 991,
+              "positions": 12807,
+              "position_nps": 260835.03055187716,
+              "nps": 281018.32994103234,
+              "generations": 4175
+            },
+            {
+              "ms": 39.89999999944121,
+              "nodes": 13798,
+              "delegations": 991,
+              "positions": 12807,
+              "position_nps": 320977.4436135178,
+              "nps": 345814.5363456952,
+              "generations": 4175
+            }
+          ],
+          "median_ms": 49.09999999962747,
+          "nodes": 13798,
+          "gen_per_node": 0.3025800840701551
+        },
+        {
+          "name": "rook-endgame",
+          "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+          "depth": 4,
+          "samples": [
+            {
+              "ms": 4.699999999254942,
+              "nodes": 972,
+              "delegations": 300,
+              "positions": 672,
+              "position_nps": 142978.72342692074,
+              "nps": 206808.51067108178,
+              "generations": 279
+            },
+            {
+              "ms": 3.2999999998137355,
+              "nodes": 972,
+              "delegations": 300,
+              "positions": 672,
+              "position_nps": 203636.36364785765,
+              "nps": 294545.4545620798,
+              "generations": 279
+            },
+            {
+              "ms": 3.3999999994412065,
+              "nodes": 972,
+              "delegations": 300,
+              "positions": 672,
+              "position_nps": 197647.0588560129,
+              "nps": 285882.35298816155,
+              "generations": 279
+            }
+          ],
+          "median_ms": 3.3999999994412065,
+          "nodes": 972,
+          "gen_per_node": 0.28703703703703703
+        }
+      ]
+    },
+    {
+      "file": "TurboKnight-5-v55.sb3",
+      "sha256": "1ad4b04e5bda97d58ec0937dbd7cdfe876e14b3e7a80c06f7bb270b498079eb6",
+      "compiled": true,
+      "errors": [],
+      "rows": [
+        {
+          "name": "start",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+          "depth": 4,
+          "samples": [
+            {
+              "ms": 110,
+              "nodes": 3670,
+              "delegations": 0,
+              "positions": 3670,
+              "position_nps": 33363.63636363636,
+              "nps": 33363.63636363636,
+              "generations": 9796
+            },
+            {
+              "ms": 62.700000000186265,
+              "nodes": 3670,
+              "delegations": 0,
+              "positions": 3670,
+              "position_nps": 58532.69537462675,
+              "nps": 58532.69537462675,
+              "generations": 9796
+            },
+            {
+              "ms": 57.5,
+              "nodes": 3670,
+              "delegations": 0,
+              "positions": 3670,
+              "position_nps": 63826.086956521736,
+              "nps": 63826.086956521736,
+              "generations": 9796
+            }
+          ],
+          "median_ms": 62.700000000186265,
+          "nodes": 3670,
+          "gen_per_node": 2.6692098092643053
+        },
+        {
+          "name": "kiwipete",
+          "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+          "depth": 3,
+          "samples": [
+            {
+              "ms": 625.9000000003725,
+              "nodes": 13614,
+              "delegations": 0,
+              "positions": 13614,
+              "position_nps": 21751.078447023323,
+              "nps": 21751.078447023323,
+              "generations": 112240
+            },
+            {
+              "ms": 637.4000000003725,
+              "nodes": 13614,
+              "delegations": 0,
+              "positions": 13614,
+              "position_nps": 21358.64449324136,
+              "nps": 21358.64449324136,
+              "generations": 112240
+            },
+            {
+              "ms": 574.1999999992549,
+              "nodes": 13614,
+              "delegations": 0,
+              "positions": 13614,
+              "position_nps": 23709.50888195344,
+              "nps": 23709.50888195344,
+              "generations": 112240
+            }
+          ],
+          "median_ms": 625.9000000003725,
+          "nodes": 13614,
+          "gen_per_node": 8.244454238284119
+        },
+        {
+          "name": "rook-endgame",
+          "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+          "depth": 4,
+          "samples": [
+            {
+              "ms": 49.59999999962747,
+              "nodes": 3913,
+              "delegations": 0,
+              "positions": 3913,
+              "position_nps": 78891.12903285059,
+              "nps": 78891.12903285059,
+              "generations": 11282
+            },
+            {
+              "ms": 50.700000000186265,
+              "nodes": 3913,
+              "delegations": 0,
+              "positions": 3913,
+              "position_nps": 77179.48717920363,
+              "nps": 77179.48717920363,
+              "generations": 11282
+            },
+            {
+              "ms": 49.69999999925494,
+              "nodes": 3913,
+              "delegations": 0,
+              "positions": 3913,
+              "position_nps": 78732.39436737746,
+              "nps": 78732.39436737746,
+              "generations": 11282
+            }
+          ],
+          "median_ms": 49.69999999925494,
+          "nodes": 3913,
+          "gen_per_node": 2.8832098134423716
+        }
+      ]
+    },
+    {
+      "file": "TurboKnight-5-v56.sb3",
+      "sha256": "552564ba5fb01c68bf2e3837c1fc148a8b5bfa4d66afd7f4043aee0e9ac560f5",
+      "compiled": true,
+      "errors": [],
+      "rows": [
+        {
+          "name": "start",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+          "depth": 4,
+          "samples": [
+            {
+              "ms": 28.600000000558794,
+              "nodes": 1445,
+              "delegations": 0,
+              "positions": 1445,
+              "position_nps": 50524.47552348836,
+              "nps": 50524.47552348836,
+              "generations": 420
+            },
+            {
+              "ms": 20.5,
+              "nodes": 1445,
+              "delegations": 0,
+              "positions": 1445,
+              "position_nps": 70487.80487804877,
+              "nps": 70487.80487804877,
+              "generations": 420
+            },
+            {
+              "ms": 8.200000000186265,
+              "nodes": 1445,
+              "delegations": 0,
+              "positions": 1445,
+              "position_nps": 176219.51219111908,
+              "nps": 176219.51219111908,
+              "generations": 420
+            }
+          ],
+          "median_ms": 20.5,
+          "nodes": 1445,
+          "gen_per_node": 0.2906574394463668
+        },
+        {
+          "name": "kiwipete",
+          "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+          "depth": 3,
+          "samples": [
+            {
+              "ms": 92.79999999981374,
+              "nodes": 15394,
+              "delegations": 0,
+              "positions": 15394,
+              "position_nps": 165883.62068998814,
+              "nps": 165883.62068998814,
+              "generations": 2479
+            },
+            {
+              "ms": 60.89999999944121,
+              "nodes": 15394,
+              "delegations": 0,
+              "positions": 15394,
+              "position_nps": 252775.0410532225,
+              "nps": 252775.0410532225,
+              "generations": 2479
+            },
+            {
+              "ms": 57.90000000037253,
+              "nodes": 15394,
+              "delegations": 0,
+              "positions": 15394,
+              "position_nps": 265872.1934352497,
+              "nps": 265872.1934352497,
+              "generations": 2479
+            }
+          ],
+          "median_ms": 60.89999999944121,
+          "nodes": 15394,
+          "gen_per_node": 0.1610367675717812
+        },
+        {
+          "name": "rook-endgame",
+          "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+          "depth": 4,
+          "samples": [
+            {
+              "ms": 9.199999999254942,
+              "nodes": 1479,
+              "delegations": 0,
+              "positions": 1479,
+              "position_nps": 160760.86957823654,
+              "nps": 160760.86957823654,
+              "generations": 452
+            },
+            {
+              "ms": 9.599999999627471,
+              "nodes": 1479,
+              "delegations": 0,
+              "positions": 1479,
+              "position_nps": 154062.50000597842,
+              "nps": 154062.50000597842,
+              "generations": 452
+            },
+            {
+              "ms": 7.900000000372529,
+              "nodes": 1479,
+              "delegations": 0,
+              "positions": 1479,
+              "position_nps": 187215.18986458948,
+              "nps": 187215.18986458948,
+              "generations": 452
+            }
+          ],
+          "median_ms": 9.199999999254942,
+          "nodes": 1479,
+          "gen_per_node": 0.30561189993238674
+        }
+      ]
+    }
+  ]
+}

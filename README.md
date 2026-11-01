@@ -1,25 +1,34 @@
-# TurboKnight 5 — v55
+# TurboKnight 5 — v56
 
 An improved version of the supplied Scratch chess engine by destructor_chess / ababoin07.
 
-**Open [TurboKnight-5-v55.sb3](TurboKnight-5-v55.sb3) in Scratch or TurboWarp.** All original artwork, sounds, embedded network weights and opening-book data are preserved. The v53 file from the preceding revision is retained in `baseline/` for comparisons.
+**Open [TurboKnight-5-v56.sb3](TurboKnight-5-v56.sb3) in Scratch or TurboWarp.** All original artwork, sounds, embedded network weights and opening-book data are preserved. The uploaded v52 and the earlier v53 are retained in `baseline/` for reproducible comparisons.
 
-## v55 repair
+## v56: original pseudo-legal generation restored
 
-v54 computed a reply but sent its `dci message` broadcast as an executable menu reporter instead of a literal broadcast input. The controller therefore never received the move. Both generated broadcasts now use the correct Scratch representation and registered broadcast IDs. The previous unit harness muted broadcasts, so it did not expose this integration failure.
+v55 became slow because it regenerated full enemy reply lists to validate kings and quiescence moves. Those probes are removed. Normal search again follows **generate pseudo-legal moves → make → search the child → undo**, with illegal predecessors rejected by the child.
 
-A real Chromium/TurboWarp regression now starts the unmodified graphical project, answers the thinking-time prompt, clicks `e2–e4`, verifies Black’s reply and both boards, plays `g1–f3` with the book disabled to force search, and restarts for another game. Broadcasts, rendering, input polling and the TurboWarp compiler remain active. The old v54 archive is retained only as a negative control that reproduces the stalled turn.
+- The original precomputed ray/knight/pawn **king-target capture lookup** is reused and its check result cached. It does not generate an enemy move list or execute a virtual king capture. This is the same small geometric lookup used in the initial project; it is not a claim that check detection has no work.
+- Quiet quiescence uses capture/promotion generation. Stand-pat cutoffs happen before generating a list; checked positions get full pseudo-legal evasions.
+- Stalemate validation usually uses a cheap legal pawn/knight/king witness. A full-list fallback is reserved for unusual immobilized positions. An unaligned non-king source in a non-check position cannot expose its king, so that witness needs no make/unmake.
+- King-capture and promotion flags are set as captures/promotions are appended. Ordinary generations no longer have an extra scan over every move; promotion expansion runs only when a promotion exists.
+- No recursive search node generates a separate full enemy reply list. Regression tests enforce zero generations for a quiet stand-pat cutoff and at most one generation per searched node.
+- The scalar, preallocated context stack and the v55 broadcast/GUI fixes remain intact.
 
-Legality now uses **king disappearance**: capture generation finds a pseudo-reply that can take the opponent’s king, makes that capture temporarily, checks the missing king, then undoes it. A normal search child reports its predecessor’s legality from its generated moves, rather than scanning square attacks after every move. A reserved probe frame handles node check status, quiescence terminal validation, and the starting, transit and final castling squares. The engine makes **zero calls** to `tools.is_square_attacked`; the legacy routine remains available to the independent test harness.
+The **compiled TurboWarp** and **real-GUI** comparisons against the original uploaded v52 and v55 are in [the v56 performance report](benchmarks/V56.md). Raw node counts and distinct-position counts are both recorded: v52 counts a depth-zero NEG-to-Q delegation twice, whereas v56 counts that position once. Search trees differ, so nominal-depth timings are also reported and must not be confused with position throughput.
+
+## GUI regression coverage
+
+v54's invalid broadcast-menu encoding is still fixed. The browser regression reproduces that old failure as a negative control, then tests v56 with real rendering, broadcasts and the TurboWarp compiler: enter thinking time, play `e2–e4`, receive a reply, play `g1–f3` with the book disabled, receive another reply, and restart for a new game. Engine and controller boards must stay synchronized.
 
 ## Search and context implementation
 
-- Every node-local search value is a **scalar variable**. Each negamax, quiescence and perft call saves and restores a complete 30-field context in **132 preallocated stack frames**. Normal completion, re-search, cutoff, terminal-position and timeout exits all pass through the return wrapper.
+- Every node-local search value is a **scalar variable**. Each negamax, quiescence and perft call saves and restores the complete 26-field live caller context in **132 preallocated stack frames**. Normal completion, re-search, cutoff, terminal-position and timeout exits all pass through the return wrapper. Scratch already retains repeat bounds in its loop frames; overwritten-before-use scratch temporaries are not copied a second time.
 - The old per-depth score/check/move/reduction/extension/TT-enable lists are gone. Move buffers have 512 preallocated slots **per call frame**, independent of chess depth. A nested search at the same ply cannot overwrite its caller's moves. `search.result.*` carries child results without a depth-indexed return list.
 - Per-depth killers are replaced by a shared, bounded **side/from/to history table**. TT moves, promotions and material-aware MVV/LVA precede quiet history moves.
-- Correct principal-variation search: a reduced search that raises alpha is verified at full depth before a full-window re-search. Check evasions, checking moves and promotions are protected from late-move reductions; PV nodes are not reduced.
+- Correct principal-variation search: a reduced search that raises alpha is verified at full depth before a full-window re-search. The initial logarithmic reduction formula and pseudo-move ordinal are restored; checking moves and promotions retain explicit protections.
 - Mate-distance bounds and normalized TT mate scores; standard bounded check extensions; widening aspiration windows from depth four.
-- Conservative reverse-futility and quiescence delta pruning. Reverse futility waits for a legal move, excludes PV/check/endgame/mate nodes, and does not store its shortcut in the TT. Delta pruning protects checks, promotions and low-material endings.
+- Reverse-futility uses the initial `120 + 30 * depth²` margin and quiet-predecessor guard, alongside quiescence delta pruning. Reverse futility waits for a legal move, excludes PV/check/endgame/mate nodes, and does not store its shortcut in the TT. Delta pruning protects checks, promotions and low-material endings.
 - Quiescence detects stalemate before accepting stand-pat, searches quiet check evasions and all promotions, and handles repetition/fifty-move claims. Checkmate takes precedence over a draw claim.
 - A node budget and tighter time checks unwind safely. The driver keeps the last **completed** iteration and a verified legal fallback if no iteration completes. It no longer relies on an arbitrary TT entry to choose the final move.
 - All four promotions are generated, made, undone and represented correctly in UCI, the DCI controller, PGN and engine/GUI synchronization. Human clicks without a suffix still default to queen. Promotion rehashing and en-passant pawn counting are corrected.
@@ -53,8 +62,8 @@ The Python builder in `tools/` is the editable source for the new search. It rea
 python3 tools/build.py
 python3 tools/build.py --no-history --no-lmr --no-pruning --output build/Search-without-heuristics.sb3
 python3 tools/build.py --nnue --output build/NNUE-candidate.sb3
-node tests/benchmark.js TurboKnight-5-v55.sb3 time benchmarks/v55-time.json
-node tests/benchmark.js TurboKnight-5-v55.sb3 depth benchmarks/v55-depth.json
+node tests/benchmark.js TurboKnight-5-v56.sb3 time benchmarks/v56-time.json
+node tests/benchmark.js TurboKnight-5-v56.sb3 depth benchmarks/v56-depth.json
 ```
 
-See [benchmarks](benchmarks/README.md) for raw measurements and their limits. The comparisons demonstrate specific improvements and tradeoffs; they are not an Elo test or proof of superiority in arbitrary positions. The v55 GUI path and TurboWarp compiler are now tested through real browser input. The old strength comparisons describe v54; they are not new strength or speed claims for v55.
+See [benchmarks](benchmarks/README.md) for raw measurements and their limits. The comparisons demonstrate specific improvements and tradeoffs; they are not an Elo test or proof of superiority in arbitrary positions. The v56 GUI path and TurboWarp compiler are now tested through real browser input. The old strength comparisons describe v54; they are not new strength or speed claims for v56.

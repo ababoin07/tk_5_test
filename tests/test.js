@@ -5,7 +5,7 @@ const {Engine,START,MAKE,ATTACK}=require('./runtime');
 const FENS=[START,'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1','8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1','4k3/P7/8/8/8/8/7p/4K3 w - - 0 1','4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1','r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1','rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8'];
 function oraclePerft(chess,d){if(!d)return 1;let n=0;for(const m of chess.moves({verbose:true})){chess.move(m);n+=oraclePerft(chess,d-1);chess.undo();}return n;}
 (async()=>{
- const e=await Engine.load(process.argv[2]||'TurboKnight-5-v55.sb3');let tests=0;
+ const e=await Engine.load(process.argv[2]||'TurboKnight-5-v56.sb3');let tests=0;
  for(const fen of FENS){
   e.fen(fen);const before=e.snapshot();const actual=[];
   for(const m of e.moves()){
@@ -81,6 +81,10 @@ function oraclePerft(chess,d){if(!d)return 1;let n=0;for(const m of chess.moves(
   if(accept)assert.equal(move,bookMove);else assert.notEqual(move,bookMove);
   assert.ok(new Chess(START).moves({verbose:true}).some(m=>m.from+m.to===move));assert.equal(e.snapshot(),before);assert.equal(e.get('search.context.sp'),0);tests++;console.log('PASS opening book validation',bookMove,move);
  }
+ // Throughput regression: quiet q stand-pat does not generate any move lists,
+ // and a normal search never generates separate full enemy reply lists.
+ e.fen(START);e.clearTT();e.set('search.stats.generations',0);e.search(0,-10000001,-500);assert.equal(Number(e.get('search.stats.generations')),0);tests++;
+ e.fen(START);e.clearTT();e.set('search.stats.generations',0);e.search(3);assert.ok(Number(e.get('search.stats.generations'))<=Number(e.get('search.nodes')));tests++;console.log('PASS pseudo-legal generation budget: zero for stand-pat, at most one list per searched node');
  // Sparse NNUE reproduces the uploaded dense network; this does not establish chess strength.
  for(const fen of [START,FENS[2],FENS[3]]){e.fen(fen);e.call('nnue.init_accumulator');const dense=e.get('nnue.accumulator').map(Number);e.call('nnue.sparse_refresh');const sparse=e.get('nnue.accumulator').map(Number);assert.ok(dense.every((x,i)=>Math.abs(x-sparse[i])<1e-9));tests++;}
  console.log('ALL PASSED',tests,'test groups');process.stdout.write('',()=>process.exit(0));

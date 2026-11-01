@@ -1,14 +1,16 @@
 {
   "name": "turboknight-5",
-  "version": "5.55.0",
+  "version": "5.56.0",
   "private": true,
   "description": "Scratch chess engine with scalar recursive search contexts and reproducible validation",
   "scripts": {
     "build": "python3 tools/build.py",
     "test": "python3 tools/build.py && node tests/structure.js && node tests/test.js && node tests/ui.js && node tests/browser.js",
-    "benchmark": "node tests/benchmark.js TurboKnight-5-v55.sb3 time benchmarks/v55-time.json",
+    "benchmark": "node tests/benchmark.js TurboKnight-5-v56.sb3 time benchmarks/v56-time.json",
     "benchmark:baseline": "node tests/benchmark.js TurboKnight-5-v54.sb3 time benchmarks/v54-reference-time.json",
-    "test:browser": "node tests/browser.js"
+    "test:browser": "node tests/browser.js",
+    "benchmark:compiled": "node tests/compiled-speed.js",
+    "benchmark:gui": "node tests/browser-speed.js"
   },
   "devDependencies": {
     "@turbowarp/packager": "3.14.0",

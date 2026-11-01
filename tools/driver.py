@@ -3,7 +3,7 @@ for code,names in {'search.fallback.node %s':['wanted'],'search.run_iteration':[
 # On timeout keep the last COMPLETED iteration. Before one completes, keep a legal fallback.
 rootcopy=[b.set('search.root.'+n,s(n)) for n in ['from','to','flag0','flag1']]
 b.define('search.root_fallback %s',['wanted'],[b.call('search.context.push'),setv('base',add(mul(sub(s('context.sp'),1),MOVES),1)),b.call('search.fallback.node %s',A('wanted')),b.call('search.context.pop')])
-fallback=[b.set('search.root.'+n,0) for n in ['from','to','flag0','flag1']]+[setv('book.found',0)]+generate()+[setv('move_idx',sub(s('base'),1)),b.repeat(s('count'),[
+fallback=[b.set('search.root.'+n,0) for n in ['from','to','flag0','flag1']]+[setv('book.found',0)]+[b.call(GEN,s('context.sp'),False),setv('count',V('moves_generator.get_moves.moves_count_res'))]+[setv('move_idx',sub(s('base'),1)),b.repeat(s('count'),[
     inc('move_idx'),b.call('search.load_move'),b.call('search.try_move'),b.call('position.unmake_move'),b.IF(eq(s('legal'),1),[
         b.IF(eq(V('search.root.from'),0),[b.set('search.root.'+n,s(n)) for n in ['from','to','flag0','flag1']]),
         b.IF(eq(A('wanted'),''),[b.ret()]),b.call(NOTATION,s('from'),s('to'),s('flag0'),s('flag1')),
@@ -27,7 +27,7 @@ b.define('search.run_iteration',[],[
         b.call(NEG,1,V('iterative_deepening.depth'),s('asp.alpha'),s('asp.beta'),0,True),
         b.IF(AND(gt(V('search.result.value'),s('asp.alpha')),lt(V('search.result.value'),s('asp.beta'))),[setv('asp.done',1)],[setv('asp.window',mul(s('asp.window'),2))])])])
 # Safe PV extraction: each TT move must match a generated LEGAL move. All temporary moves undo.
-pvstep=[setv('pv.found',0)]+generate()+[setv('move_idx',sub(s('base'),1)),b.repeat(s('count'),[
+pvstep=[setv('pv.found',0)]+[b.call(GEN,s('context.sp'),False),setv('count',V('moves_generator.get_moves.moves_count_res'))]+[setv('move_idx',sub(s('base'),1)),b.repeat(s('count'),[
     inc('move_idx'),b.call('search.load_move'),b.IF(AND(eq(s('from'),s('pv.from')),AND(eq(s('to'),s('pv.to')),eq(s('flag1'),s('pv.flag1')))),[
         b.call('search.try_move'),b.IF(eq(s('legal'),1),[b.call(NOTATION,s('from'),s('to'),s('flag0'),s('flag1')),setv('build_pv.res',join(s('build_pv.res'),join(V('tools.get_uci_notation.res'),' '))),setv('pv.found',1),b.ret()]),b.call('position.unmake_move')])])]
 b.define('search.pv.step',[],pvstep)
@@ -45,7 +45,7 @@ b.define('search.report',[],[setv('evaluation',cp),b.set('_dci evaluation',div(s
     b.append('_CONSOLE',join(join(join(join('info depth ',s('completed_depth')),join(' seldepth ',s('sel_depth'))),join(' score ',s('report.score'))),join(join(join(' nodes ',s('nodes')),join(' nps ',math('floor',div(s('nodes'),s('report.elapsed'))))),join(' pv ',s('build_pv.res'))))),b.append('_dci',li('_CONSOLE',Expr('data_lengthoflist',fields={'LIST':['_CONSOLE',None]}))),
     b.broadcast('gui refresh stats')])
 b.define(ITER,['max_time','max_depth'],[
-    setv('context.sp',0),setv('nodes',0),setv('qnodes',0),setv('stopped',0),setv('start',now()),setv('max_time',A('max_time')),setv('max_nodes',V('_dci max nodes')),b.IF(AND(NOT(gt(s('max_time'),0)),AND(NOT(gt(A('max_depth'),0)),NOT(gt(s('max_nodes'),0)))),[setv('max_time',1)]),setv('completed_depth',0),setv('root.score',0),setv('sel_depth',0),setv('book.move',''),
+    setv('context.sp',0),setv('nodes',0),setv('stats.generations',0),setv('stats.witness_fallbacks',0),setv('qnodes',0),setv('stopped',0),setv('start',now()),setv('max_time',A('max_time')),setv('max_nodes',V('_dci max nodes')),b.IF(AND(NOT(gt(s('max_time'),0)),AND(NOT(gt(A('max_depth'),0)),NOT(gt(s('max_nodes'),0)))),[setv('max_time',1)]),setv('completed_depth',0),setv('root.score',0),setv('sel_depth',0),setv('book.move',''),
     b.IF(AND(eq(s('use_book'),1),Expr('data_listcontainsitem',{'ITEM':add(V('position.positionnal_hash'),V('position.datas_hash'))},{'LIST':['_OPENING_BOOK',None]})),[
         setv('book.move',li('_OPENING_BOOK',add(Expr('data_itemnumoflist',{'ITEM':add(V('position.positionnal_hash'),V('position.datas_hash'))},{'LIST':['_OPENING_BOOK',None]}),1)))
     ]),b.call('search.root_fallback %s',s('book.move')),b.IF(OR(eq(s('book.found'),1),eq(V('search.root.from'),0)),[b.call('search.emit'),b.ret()]),
