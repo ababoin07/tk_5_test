@@ -1,0 +1,136 @@
+{
+  "artifact": "TurboKnight-5-v54.sb3",
+  "artifact_sha256": "0167e92858ffcbe2a16c9b16500ae1ef92158fb00f64b2e528a40da648c43acd",
+  "mode": "depth",
+  "node": "v24.19.0",
+  "platform": "linux",
+  "positions": [
+    {
+      "name": "start",
+      "ms": 1218.43,
+      "nodes": 959,
+      "depth": 3,
+      "value": 35,
+      "move": "g1f3",
+      "legal": true,
+      "solved": null
+    },
+    {
+      "name": "kiwipete",
+      "ms": 22163.5,
+      "nodes": 10322,
+      "depth": 2,
+      "value": 27,
+      "move": "d5e6",
+      "legal": true,
+      "solved": null
+    },
+    {
+      "name": "rook-endgame",
+      "ms": 3777.37,
+      "nodes": 3460,
+      "depth": 4,
+      "value": 92.33333333333333,
+      "move": "b4f4",
+      "legal": true,
+      "solved": null
+    },
+    {
+      "name": "mate-in-one",
+      "ms": 132.36,
+      "nodes": 57,
+      "depth": 2,
+      "value": 9999999,
+      "move": "g6g7",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "back-rank-white",
+      "ms": 343.9,
+      "nodes": 398,
+      "depth": 3,
+      "value": 9999999,
+      "move": "a1a8",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "back-rank-black",
+      "ms": 80.15,
+      "nodes": 2,
+      "depth": 3,
+      "value": 9999999,
+      "move": "a8a1",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "rook-underpromotion",
+      "ms": 102.56,
+      "nodes": 11,
+      "depth": 1,
+      "value": 574.1666666666666,
+      "move": "c7c8r",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "take-queen-rook",
+      "ms": 159.11,
+      "nodes": 93,
+      "depth": 3,
+      "value": 512.1666666666666,
+      "move": "d2d5",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "take-queen-knight",
+      "ms": 239.15,
+      "nodes": 121,
+      "depth": 3,
+      "value": 0,
+      "move": "c3d5",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "capture-promotion",
+      "ms": 251.79,
+      "nodes": 200,
+      "depth": 2,
+      "value": 955.3333333333334,
+      "move": "b7a8q",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "en-passant",
+      "ms": 154.69,
+      "nodes": 123,
+      "depth": 3,
+      "value": 14,
+      "move": "e1f2",
+      "legal": true,
+      "solved": null
+    },
+    {
+      "name": "quiet-check-evasion",
+      "ms": 288.44,
+      "nodes": 274,
+      "depth": 2,
+      "value": -482.6666666666667,
+      "move": "e8d7",
+      "legal": true,
+      "solved": true
+    }
+  ],
+  "summary": {
+    "solved": 8,
+    "scored": 8,
+    "illegal": 0,
+    "nodes": 16020,
+    "milliseconds": 28911.45
+  }
+}

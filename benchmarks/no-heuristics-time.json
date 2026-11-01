@@ -1,0 +1,124 @@
+{
+  "artifact": "build/Search-without-heuristics.sb3",
+  "artifact_sha256": "3498f33a44bd906d4b29dc36161de8b9b9cffd377f375eca734f3c4c4de673ca",
+  "mode": "time",
+  "node": "v24.19.0",
+  "platform": "linux",
+  "positions": [
+    {
+      "name": "start",
+      "ms": 530.53,
+      "nodes": 320,
+      "depth": 2,
+      "move": "g1f3",
+      "legal": true,
+      "solved": null
+    },
+    {
+      "name": "kiwipete",
+      "ms": 624.69,
+      "nodes": 256,
+      "depth": 0,
+      "move": "d5e6",
+      "legal": true,
+      "solved": null
+    },
+    {
+      "name": "rook-endgame",
+      "ms": 546.03,
+      "nodes": 448,
+      "depth": 2,
+      "move": "b4f4",
+      "legal": true,
+      "solved": null
+    },
+    {
+      "name": "mate-in-one",
+      "ms": 108.92,
+      "nodes": 23,
+      "depth": 1,
+      "move": "g6g7",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "back-rank-white",
+      "ms": 106.41,
+      "nodes": 16,
+      "depth": 1,
+      "move": "a1a8",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "back-rank-black",
+      "ms": 99.19,
+      "nodes": 2,
+      "depth": 1,
+      "move": "a8a1",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "rook-underpromotion",
+      "ms": 206.26,
+      "nodes": 132,
+      "depth": 3,
+      "move": "c7c8r",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "take-queen-rook",
+      "ms": 573.06,
+      "nodes": 448,
+      "depth": 3,
+      "move": "d2d5",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "take-queen-knight",
+      "ms": 554.4,
+      "nodes": 384,
+      "depth": 3,
+      "move": "c3d5",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "capture-promotion",
+      "ms": 539.36,
+      "nodes": 448,
+      "depth": 2,
+      "move": "b7a8q",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "en-passant",
+      "ms": 525.28,
+      "nodes": 640,
+      "depth": 4,
+      "move": "e1f2",
+      "legal": true,
+      "solved": null
+    },
+    {
+      "name": "quiet-check-evasion",
+      "ms": 512.88,
+      "nodes": 512,
+      "depth": 2,
+      "move": "e8d7",
+      "legal": true,
+      "solved": true
+    }
+  ],
+  "summary": {
+    "solved": 8,
+    "scored": 8,
+    "illegal": 0,
+    "nodes": 3629,
+    "milliseconds": 4927.01
+  }
+}

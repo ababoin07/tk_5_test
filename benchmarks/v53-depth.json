@@ -1,0 +1,135 @@
+{
+  "artifact": "baseline/TurboKnight-5-v53.sb3",
+  "mode": "depth",
+  "node": "v24.19.0",
+  "platform": "linux",
+  "positions": [
+    {
+      "name": "start",
+      "ms": 318.11,
+      "nodes": 469,
+      "depth": 3,
+      "value": 35,
+      "move": "g1f3",
+      "legal": true,
+      "solved": null
+    },
+    {
+      "name": "kiwipete",
+      "ms": 22903.01,
+      "nodes": 32072,
+      "depth": 2,
+      "value": 26,
+      "move": "e2a6",
+      "legal": true,
+      "solved": null
+    },
+    {
+      "name": "rook-endgame",
+      "ms": 501.57,
+      "nodes": 1096,
+      "depth": 4,
+      "value": 83,
+      "move": "b4f4",
+      "legal": true,
+      "solved": null
+    },
+    {
+      "name": "mate-in-one",
+      "ms": 183.39,
+      "nodes": 389,
+      "depth": 2,
+      "value": 9999998,
+      "move": "g6g7",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "back-rank-white",
+      "ms": 83.83,
+      "nodes": 59,
+      "depth": 3,
+      "value": 9999998,
+      "move": "a1a8",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "back-rank-black",
+      "ms": 62.66,
+      "nodes": 42,
+      "depth": 3,
+      "value": 9999998,
+      "move": "a8a1",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "rook-underpromotion",
+      "ms": 61.38,
+      "nodes": 22,
+      "depth": 1,
+      "value": 306,
+      "move": "c6d5",
+      "legal": true,
+      "solved": false
+    },
+    {
+      "name": "take-queen-rook",
+      "ms": 147.63,
+      "nodes": 224,
+      "depth": 3,
+      "value": 512.1666666666666,
+      "move": "d2d5",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "take-queen-knight",
+      "ms": 80.07,
+      "nodes": 49,
+      "depth": 3,
+      "value": 0,
+      "move": "c3d5",
+      "legal": true,
+      "solved": true
+    },
+    {
+      "name": "capture-promotion",
+      "ms": 70.41,
+      "nodes": 40,
+      "depth": 2,
+      "value": 0,
+      "move": "b7a8n",
+      "legal": true,
+      "solved": false
+    },
+    {
+      "name": "en-passant",
+      "ms": 143.36,
+      "nodes": 236,
+      "depth": 3,
+      "value": 14,
+      "move": "e1f2",
+      "legal": true,
+      "solved": null
+    },
+    {
+      "name": "quiet-check-evasion",
+      "ms": 124.33,
+      "nodes": 159,
+      "depth": 2,
+      "value": -489.75,
+      "move": "e8d7",
+      "legal": true,
+      "solved": true
+    }
+  ],
+  "summary": {
+    "solved": 6,
+    "scored": 8,
+    "illegal": 0,
+    "nodes": 34857,
+    "milliseconds": 24679.75
+  }
+}
