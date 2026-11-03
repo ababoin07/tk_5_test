@@ -5,7 +5,40 @@ from blocks import *
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser();parser.add_argument('--output',default=str(ROOT/'TurboKnight-5-v56.sb3'));parser.add_argument('--no-history',action='store_true');parser.add_argument('--no-lmr',action='store_true');parser.add_argument('--no-pruning',action='store_true');parser.add_argument('--nnue',action='store_true');args=parser.parse_args()
 archive=zipfile.ZipFile(ROOT/'baseline/TurboKnight-5-v53.sb3');P=json.loads(archive.read('project.json'));T=P['targets'][-1];b=Builder(P,T);B=b.B
+# Baseline call mutations omit argumentnames/argumentdefaults, which breaks the
+# TurboWarp editor. Backfill them from each procedure's prototype before editing;
+# prototypes with stale defaults are normalized to their own argument count.
+def normalize_mutation(m):
+    ids=json.loads(m['argumentids'])
+    types=[x for x in m['proccode'].split() if x in ('%s','%n','%b')]
+    def valid(field):
+        try:parsed=json.loads(m[field])
+        except Exception:return None
+        return parsed if isinstance(parsed,list) and len(parsed)==len(ids) else None
+    names=valid('argumentnames')
+    if names is None:m['argumentnames']=json.dumps(['arg'+str(i+1) for i in range(len(ids))])
+    defaults=valid('argumentdefaults')
+    if defaults is None:
+        vals=['' if t!='%b' else 'false' for t in types[:len(ids)]]
+        m['argumentdefaults']=json.dumps(vals+['']*(len(ids)-len(vals)))
+protos={}
+for t in P['targets']:
+    for v in t['blocks'].values():
+        if v['opcode']=='procedures_prototype':
+            normalize_mutation(v['mutation']);protos.setdefault(v['mutation']['proccode'],v['mutation'])
+for t in P['targets']:
+    for v in t['blocks'].values():
+        if v['opcode']!='procedures_call':continue
+        m=v['mutation'];p=protos.get(m['proccode'])
+        if p is not None and json.loads(p['argumentids'])==json.loads(m['argumentids']):
+            m['argumentnames']=p['argumentnames'];m['argumentdefaults']=p['argumentdefaults']
+        normalize_mutation(m)
 CAP=132;MOVES=512;MATE=10000000;INF=MATE+1
+# Search-margin tunables, single source of truth for both RFP sites.
+LMR_BASE=1.35   # LMR constant reduction applied to the first late move
+LMR_DIV=2.75    # divisor of the ln(ordinal)*ln(depth) LMR term
+RFP_BASE=120    # reverse futility pruning base margin (centipawns)
+RFP_COEF=30     # reverse futility margin added per depth^2
 NEG='search.negamax %s %s %s %s %s %b';Q='search.q_search %s %s %s';PERFT='__PERFT %s %s';GEN='moves_generator.get_moves %s %b';MAKE='position._make_move_impl %s %s %s %s';ATTACK='tools.is_square_attacked %s %s';NOTATION='tools._get_uci_notation_impl %s %s %s %s';STORE='TT.store %s %s %s %s %s %s %s %s';ITER='iterative_deepening %s %s'
 # Remove all earlier search implementations, including per-ply killers and wrappers.
 for k,v in list(B.items()):
@@ -43,7 +76,7 @@ B['Ak']['inputs']['ITEM']=b.input('id name TurboKnight 5 v56')
 B['aZ']['inputs']['TIMES']=b.input(CAP*MOVES)
 # Eliminate stale or undeclared removed procedure references on non-procedure debug scripts.
 # The remaining public entry names/argument IDs stay compatible with all existing callers.
-fields=['ply','depth','alpha','beta','alpha_start','beta_start','extension','tt_allowed','base','move_idx','best_value','best_from','best_to','best_flag0','best_flag1','in_check','legal_count','from','to','flag0','flag1','reduction','static','is_pv','rfp','previous_legal']
+fields=['ply','depth','alpha','beta','alpha_start','beta_start','extension','tt_allowed','base','move_idx','best_value','best_from','best_to','best_flag0','best_flag1','in_check','legal_count','from','to','flag0','flag1','reduction','static','is_pv','rfp','previous_legal','gives_check','count','score','legal','drawn','skip','gain','history_idx','bonus']
 s=lambda n:V('search.'+n)
 setv=lambda n,x:b.set('search.'+n,x)
 inc=lambda n,x=1:b.inc('search.'+n,x)
@@ -107,6 +140,9 @@ common=[b.call('search.limits'),b.IF(eq(s('stopped'),1),[b.ret()]),inc('nodes'),
 def ttcut():return b.IF(AND(NOT(gt(sub(s('beta'),s('alpha')),1)),NOT(lt(s('tt_depth'),s('depth')))),[
     b.IF(OR(eq(s('tt_flag'),0),OR(AND(eq(s('tt_flag'),1),NOT(lt(s('tt_value'),s('beta')))),AND(eq(s('tt_flag'),2),NOT(gt(s('tt_value'),s('alpha')))))),[setv('best_flag0',V('tt.probe.move.flag0')),setv('best_value',s('tt_value')),setv('best_from',s('tt_from')),setv('best_to',s('tt_to')),setv('best_flag1',s('tt_flag1')),b.ret()])])
 # draw and max-depth nodes go through quiescence's legal-move detection without recursion.
+# Reverse futility pruning margin: RFP_BASE + RFP_COEF*depth^2, shared by the
+# cutoff test and the loop-body score so both sites always agree.
+def rfp_margin():return add(RFP_BASE,mul(RFP_COEF,mul(s('depth'),s('depth'))))
 nodebody=common+[b.call('search.tt_probe'),b.IF(eq(s('drawn'),0),[ttcut()]),b.call('search.check'),
     b.IF(lt(s('alpha'),add(-MATE,s('ply'))),[setv('alpha',add(-MATE,s('ply')))]),
     b.IF(gt(s('beta'),sub(sub(MATE,s('ply')),1)),[setv('beta',sub(sub(MATE,s('ply')),1))]),
@@ -115,7 +151,7 @@ nodebody=common+[b.call('search.tt_probe'),b.IF(eq(s('drawn'),0),[ttcut()]),b.ca
     b.IF(AND(eq(s('in_check'),1),lt(s('extension'),4)),[inc('depth'),inc('extension')]),
     b.call(GEN,s('context.sp'),False),setv('count',V('moves_generator.get_moves.moves_count_res')),setv('rfp',0),
     b.IF(AND(AND(eq(s('use_pruning'),1),eq(s('use_nnue'),0)),AND(eq(s('is_pv'),0),AND(eq(s('in_check'),0),AND(lt(s('depth'),4),AND(gt(V('position.game_phase'),3),lt(math('abs',s('beta')),V('_CONST.MATE_THRESHOLD'))))))),[
-        b.IF(AND(eq(li('position.moves_stack.flag0',V('_plies_from_begining')),0),lt(li('position.moves_stack.flag1',V('_plies_from_begining')),6)),[b.call('search.evaluate'),b.IF(NOT(lt(sub(s('static'),add(120,mul(30,mul(s('depth'),s('depth'))))),s('beta'))),[setv('rfp',1)])])]),
+        b.IF(AND(eq(li('position.moves_stack.flag0',V('_plies_from_begining')),0),lt(li('position.moves_stack.flag1',V('_plies_from_begining')),6)),[b.call('search.evaluate'),b.IF(NOT(lt(sub(s('static'),rfp_margin()),s('beta'))),[setv('rfp',1)])])]),
     b.call('search.order'),setv('move_idx',sub(s('base'),1))]
 # All move loop counters and re-search state are scalars saved by each child wrapper.
 child=lambda d,a,be:b.call(NEG,add(s('ply'),2),d,a,be,s('extension'),eq(s('tt_allowed'),1))
@@ -127,15 +163,15 @@ lmr_condition=AND(eq(s('use_lmr'),1),AND(NOT(lt(s('depth'),2)),AND(NOT(lt(ordina
 pvs=[setv('reduction',0),b.IF(lmr_condition,[
     # Never reduce checks or promotions; bound the reduction to leave a full ply.
     b.call('search.probe_check'),setv('gives_check',V('search.probe.in_check')),
-    b.IF(eq(s('gives_check'),0),[setv('reduction',math('floor',add(1.35,div(mul(math('ln',add(ordinal,1)),math('ln',s('depth'))),2.75)))),b.IF(gt(s('reduction'),sub(s('depth'),1)),[setv('reduction',sub(s('depth'),1))])])]),
+    b.IF(eq(s('gives_check'),0),[setv('reduction',math('floor',add(LMR_BASE,div(mul(math('ln',add(ordinal,1)),math('ln',s('depth'))),LMR_DIV)))),b.IF(gt(s('reduction'),sub(s('depth'),1)),[setv('reduction',sub(s('depth'),1))])])]),
     child(sub(sub(s('depth'),1),s('reduction')),sub(-1,s('alpha')),sub(0,s('alpha'))),setv('score',sub(0,V('search.result.value'))),setv('legal',V('search.result.legal')),
     b.IF(AND(gt(s('reduction'),0),gt(s('score'),s('alpha'))),research),
     b.IF(AND(gt(s('score'),s('alpha')),lt(s('score'),s('beta'))),[child(sub(s('depth'),1),sub(0,s('beta')),sub(0,s('alpha'))),setv('score',sub(0,V('search.result.value'))),setv('legal',V('search.result.legal'))])]
 def remember():return [setv('best_value',s('score'))]+[setv('best_'+n,s(n)) for n in ['from','to','flag0','flag1']]
 # quiet beta-cutoff history bonus, with bounded gravity to avoid overflow/saturation.
 history=[setv('history_idx',hidx),setv('bonus',mul(mul(s('depth'),s('depth')),32)),b.IF(gt(s('bonus'),2048),[setv('bonus',2048)]),b.replace('search.history',s('history_idx'),add(li('search.history',s('history_idx')),sub(s('bonus'),div(mul(li('search.history',s('history_idx')),s('bonus')),16384))))]
-loopbody=[inc('move_idx'),b.call('search.load_move'),b.call(MAKE,s('from'),s('to'),s('flag0'),s('flag1')),setv('legal',1),b.IF(eq(s('legal'),1),[inc('legal_count'),b.IF(eq(s('rfp'),1),[b.call('search.king_probe'),setv('legal',sub(1,V('moves_generator.king_capture'))),setv('score',sub(s('static'),add(120,mul(30,mul(s('depth'),s('depth'))))))],[b.IF(eq(s('legal_count'),1),[child(sub(s('depth'),1),sub(0,s('beta')),sub(0,s('alpha'))),setv('score',sub(0,V('search.result.value'))),setv('legal',V('search.result.legal'))],pvs)])]),b.call('position.unmake_move'),b.IF(eq(s('legal'),0),[inc('legal_count',-1)]),b.IF(eq(s('stopped'),1),[b.ret()]),b.IF(eq(s('legal'),1),[
-    b.IF(eq(s('rfp'),1),[setv('best_value',s('score')),inc('rfp_prunes'),b.ret()]),
+loopbody=[inc('move_idx'),b.call('search.load_move'),b.call(MAKE,s('from'),s('to'),s('flag0'),s('flag1')),setv('legal',1),b.IF(eq(s('legal'),1),[inc('legal_count'),b.IF(eq(s('rfp'),1),[b.call('search.king_probe'),setv('legal',sub(1,V('moves_generator.king_capture'))),setv('score',sub(s('static'),rfp_margin()))],[b.IF(eq(s('legal_count'),1),[child(sub(s('depth'),1),sub(0,s('beta')),sub(0,s('alpha'))),setv('score',sub(0,V('search.result.value'))),setv('legal',V('search.result.legal'))],pvs)])]),b.call('position.unmake_move'),b.IF(eq(s('legal'),0),[inc('legal_count',-1)]),b.IF(eq(s('stopped'),1),[b.ret()]),b.IF(eq(s('legal'),1),[
+    b.IF(eq(s('rfp'),1),[setv('best_value',s('score')),b.ret()]),
     b.IF(gt(s('score'),s('best_value')),remember()),b.IF(gt(s('score'),s('alpha')),[setv('alpha',s('score'))]),b.IF(NOT(lt(s('alpha'),s('beta'))),[b.IF(AND(eq(s('use_history'),1),AND(eq(s('flag0'),0),lt(s('flag1'),6))),history),b.call('search.tt_store'),b.ret()])])]
 nodebody += [b.repeat(s('count'),loopbody),b.IF(eq(s('legal_count'),0),[b.IF(eq(s('in_check'),1),[setv('best_value',add(-MATE,s('ply')))],[setv('best_value',0)])]),b.call('search.tt_store')]
 b.define('search.node',[],nodebody)
@@ -160,7 +196,7 @@ qloop=[inc('move_idx'),b.call('search.load_move'),
     b.IF(OR(eq(s('in_check'),1),OR(eq(s('flag0'),1),gt(s('flag1'),5))),[
         setv('gain',li('data.material',math('abs',li('position.board',s('to'))))),b.IF(eq(s('flag1'),1),[setv('gain',100)]),
         b.call(MAKE,s('from'),s('to'),s('flag0'),s('flag1')),setv('skip',0),
-        b.IF(delta_ok,[b.call('search.probe_check'),b.IF(eq(V('search.probe.in_check'),0),[setv('skip',1),inc('delta_prunes')])]),
+        b.IF(delta_ok,[b.call('search.probe_check'),b.IF(eq(V('search.probe.in_check'),0),[setv('skip',1)])]),
         b.IF(eq(s('skip'),0),qsearch,[setv('legal',0)]),
         b.call('position.unmake_move'),b.IF(eq(s('stopped'),1),[b.ret()]),
         b.IF(eq(s('legal'),1),[inc('legal_count'),b.IF(gt(s('score'),s('best_value')),remember()),

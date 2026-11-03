@@ -79,8 +79,12 @@ class Builder:
     def declare(self,code,names):
         if code not in self.signatures:self.signatures[code]=(['v54_arg_'+code+'_'+str(i) for i in range(len(names))],names)
     def call(self,code,*args):
+        # TurboWarp's editor requires argumentnames/argumentdefaults on every call
+        # mutation; without them it cannot map inputs to parameters and breaks.
         ids,names=self.signatures[code];assert len(ids)==len(args),(code,args)
-        return self.block('procedures_call',dict(zip(ids,map(self.input,args))),mutation={'tagName':'mutation','children':[],'proccode':code,'argumentids':json.dumps(ids),'warp':'true'})
+        types=[x for x in code.split() if x in ('%s','%n','%b')]
+        defaults=['' if t!='%b' else 'false' for t in types]
+        return self.block('procedures_call',dict(zip(ids,map(self.input,args))),mutation={'tagName':'mutation','children':[],'proccode':code,'argumentids':json.dumps(ids),'argumentnames':json.dumps(names),'argumentdefaults':json.dumps(defaults),'warp':'true'})
     def define(self,code,names,body,warp=True,comment=None):
         self.declare(code,names);ids,_=self.signatures[code];m={'tagName':'mutation','children':[],'proccode':code,'argumentids':json.dumps(ids),'argumentnames':json.dumps(names),'argumentdefaults':json.dumps(['']*len(names)),'warp':str(warp).lower()}
         p=self.block('procedures_prototype',mutation=m);self.B[p]['shadow']=True
